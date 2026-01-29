@@ -1,4 +1,4 @@
-import { ApiResponse } from "@shared/types";
+import { ApiResponse } from "../types";
 
 export function createApiResponse<T>(
     success: boolean,

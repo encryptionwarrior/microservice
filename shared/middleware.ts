@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import { logError, ServiceError } from "./types";
-import { create } from "node:domain";
 import { createErrorResponse } from "./utils";
 
 export function corsOptions() {
