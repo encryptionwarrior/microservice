@@ -31,8 +31,8 @@ const server = app.listen(PORT, () => {
 const gracefulShutdown = async () => {
   console.log("Shutting down server...");
   try {
-    const producer = getKafkaProducer("auth-service");
-    await producer?.disconnect();
+    // const producer = getKafkaProducer("auth-service");
+    // await producer?.disconnect();
     console.log("Kafka producer disconnected.");
   } catch (error) {
     console.error("Error during Kafka producer disconnection:", error);

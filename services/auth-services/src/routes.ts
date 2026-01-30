@@ -1,4 +1,6 @@
+import { validateRequest } from "@shared/middleware";
 import { Router } from "express";
+import { registerSchema } from "./validation";
 
 const router = Router();
 
@@ -6,5 +8,7 @@ const router = Router();
 router.get("/health", (req, res) => {
   res.status(200).send("Auth service is healthy");
 });
+
+router.post("/register", validateRequest(registerSchema), authController.register)
 
 export default router;

@@ -30,3 +30,8 @@ export function logError(error: Error, context?: Record<string, any>): void {
     timestamp: new Date().toISOString(),
   });
 }
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+}
