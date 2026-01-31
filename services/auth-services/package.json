@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --exec \"npx ts-node -r tsconfig-paths/register --transpile-only src/index.ts\"",
+"dev": "nodemon --exec \"node -r dotenv/config -r ts-node/register -r tsconfig-paths/register src/index.ts\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -11,6 +11,7 @@
   "type": "commonjs",
   "description": "",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",

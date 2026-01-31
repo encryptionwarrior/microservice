@@ -5,7 +5,9 @@ import helmet from "helmet";
 import authRoutes from "./routes";
 import { corsOptions, errorHandler, healthCheck } from "@shared/middleware";
 
-dotenv.config();
+dotenv.config({
+  path: require("path").resolve(__dirname, "../.env"),
+});
 
 const app = express();
 
@@ -16,6 +18,7 @@ app.use(helmet());
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+
 
 app.use("/auth", authRoutes);
 app.use("/health", healthCheck);
