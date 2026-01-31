@@ -19,3 +19,7 @@ export function createErrorResponse(error: string): ApiResponse {
     return createApiResponse(false, undefined, undefined, error);
 }
 
+
+export function createSuccessResponse<T>(data: T, message?: string): ApiResponse<T> {
+    return createApiResponse(true, data, message);
+}
