@@ -1,5 +1,8 @@
 import { AuthTokens } from "@shared/types";
-import prisma from 
+import prisma from "./database";
+import bcrypt from "bcryptjs";
+import jwt, { SignOptions } from "jsonwebtoken";
+import { StringValue} from "ms"
 
 
 export class AuthService {
@@ -23,6 +26,54 @@ export class AuthService {
     }
 
     async register(email: string, password: string): Promise<AuthTokens> {
-        const existingUser = await prisma
+        const existingUser = await prisma.user.findUnique({
+            where: { email }
+        });
+        if(existingUser){
+            throw new Error("User with this email already exists");
+        }
+
+        const hashedPassword = await bcrypt.hash(password, this.bcryptSaltRounds);
+
+        const user = await prisma.user.create({
+            data: {
+                email,
+                password: hashedPassword
+            }
+        });
+
+        return this.generateTokens(user.id, user.email);
+    }
+
+    private async generateTokens(userId: string, email: string): Promise<AuthTokens> {
+        const payload = { userId, email };
+
+       const accessTokenOptions: SignOptions = {
+            expiresIn: this.jwtExpiresIn as StringValue
+       }
+
+       const accessToken = jwt.sign(payload, this.jwtSecret, accessTokenOptions);
+
+       const refreshTokenOptions: SignOptions = {
+            expiresIn: this.jwtRefreshExpiresIn as StringValue
+       }
+
+         const refreshToken = jwt.sign(payload, this.jwtRefreshSecret, refreshTokenOptions);
+
+         const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 7);
+        
+        await prisma.refreshToken.create({
+            data: {
+                token: refreshToken,
+                userId,
+                expiresAt
+            }
+        });
+
+        return {
+            accessToken,
+            refreshToken
+        }
     }
 }
