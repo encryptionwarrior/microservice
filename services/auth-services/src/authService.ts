@@ -1,8 +1,9 @@
-import { AuthTokens } from "@shared/types";
+import { AuthTokens, ServiceError } from "@shared/types";
 import prisma from "./database";
 import bcrypt from "bcryptjs";
 import jwt, { SignOptions } from "jsonwebtoken";
 import { StringValue} from "ms"
+import { createServiceError } from "@shared/utils";
 
 
 export class AuthService {
@@ -26,6 +27,7 @@ export class AuthService {
     }
 
     async register(email: string, password: string): Promise<AuthTokens> {
+        console.log("Registering user with email: +++", email);
         const existingUser = await prisma.user.findUnique({
             where: { email }
         });
@@ -43,6 +45,61 @@ export class AuthService {
         });
 
         return this.generateTokens(user.id, user.email);
+    }
+
+    async login(email: string, password: string): Promise<AuthTokens> {
+        const user = await prisma.user.findUnique({
+            where: { email }
+        });
+
+        if(!user){
+            throw createServiceError("Invalid email or password", 401);
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if(!isPasswordValid){
+            throw new Error("Invalid email or password");
+        }
+
+        return this.generateTokens(user.id, user.email);
+    }
+
+
+    async refreshToken(refreshToken: string): Promise<AuthTokens> {
+        try {
+            jwt.verify(refreshToken, this.jwtRefreshSecret);
+
+            const storedToken = await prisma.refreshToken.findUnique({
+                where: { token: refreshToken },
+                include: { user: true }
+            });
+
+            if(!storedToken || storedToken.expiresAt < new Date()){
+                throw createServiceError("Invalid or expired refresh token", 401);
+            }
+
+          const tokens = await this.generateTokens(storedToken.user.id,
+            storedToken.user.email
+          )
+
+          await prisma.refreshToken.delete({
+            where: { token: refreshToken }
+          });
+
+            return tokens;
+            
+        } catch (error) {
+            if(error instanceof ServiceError){
+                throw error;
+            }
+            throw createServiceError("Invalid refresh token", 401, error);
+        }
+    }
+
+    async logout(refreshToken: string): Promise<void> {
+        await prisma.refreshToken.deleteMany({
+            where: { token: refreshToken }
+        });
     }
 
     private async generateTokens(userId: string, email: string): Promise<AuthTokens> {

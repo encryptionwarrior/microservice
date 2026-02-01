@@ -16,3 +16,24 @@ export const registerSchema = joi.object({
       "any.required": "Password is required",
     }),
 });
+
+export const loginSchema = joi.object({
+  email: joi
+    .string()
+    .email()
+    .required()
+    .messages({
+      "string.email": "Email must be a valid email address",
+      "any.required": "Email is required",
+    }),
+    password: joi.string().required().messages({
+      "any.required": "Password is required",
+    }),
+});
+
+
+export const refreshTokenSchema = joi.object({
+  refreshToken: joi.string().required().messages({
+    "any.required": "Refresh token is required",
+  }),
+});
