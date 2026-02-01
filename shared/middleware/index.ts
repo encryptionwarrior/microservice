@@ -1,6 +1,15 @@
-import { logError, ServiceError } from "@shared/types";
-import { createErrorResponse } from "@shared/utils";
+import { JWTPayload, logError, ServiceError } from "../types";
+import { createErrorResponse } from "../utils";
 import { NextFunction, Request, Response } from "express";
+import jwt from "jsonwebtoken";
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+    }
+  }
+}
 
 export function corsOptions() {
   return {
@@ -61,6 +70,35 @@ export function validateRequest(schema: any) {
 
         next();
     }
+}
+
+
+export function authenticateToken(req: Request, res: Response, next: NextFunction): void {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        res.status(401).json(createErrorResponse("No token provided"));
+        return
+    }
+
+    const jwtSecret = process.env.JWT_SECRET!;
+
+    if(!jwtSecret){
+      logError(new Error("JWT secret not defined in environment variables"));
+
+      res.status(500).json(createErrorResponse("Internal server error"));
+      return;
+    }
+
+    jwt.verify(token, jwtSecret, (err: any, decoded: any) => {
+        if (err) {
+            res.status(403).json(createErrorResponse("Invalid or expired token"));
+            return;
+        }
+        req.user = decoded as JWTPayload;
+        next();
+    });
 }
 
 
