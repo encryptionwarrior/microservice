@@ -24,3 +24,10 @@ export const createNote = asyncHandler(async (req: Request, res: Response) => {
     .status(201)
     .json(createSuccessResponse(note, "Note created successfully"));
 });
+
+export const getNotes = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+  if (!userId) {
+    return res.status(401).json(createErrorResponse("Unauthorized"));
+  }
+});
