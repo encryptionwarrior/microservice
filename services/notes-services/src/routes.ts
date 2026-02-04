@@ -9,7 +9,9 @@ router.use(authenticateToken);
 
 router.post("/", validateRequest(createNoteSchema), noteController.createNote);
 
-router.get("/", validateRequest(getNotesByUserSchema), noteController.getnote)
+router.get("/", validateRequest(getNotesByUserSchema), noteController.getNotes)
+
+router.get("/:noteId", noteController.getNoteById)
 
 export default router;
 

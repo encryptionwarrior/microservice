@@ -37,3 +37,13 @@ export function createServiceError(
 export function sanitizeInput(input: string): string {
   return input.replace(/[<>]/g, "").trim();
 }
+
+export function parseEnvInt(
+  value: string | undefined,
+  defaultValue: number,
+): number {
+  if (!value) return defaultValue;
+
+  const parsedValue = parseInt(value, 10);
+  return isNaN(parsedValue) ? defaultValue : parsedValue;
+}
