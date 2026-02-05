@@ -66,3 +66,8 @@ export interface Tag {
   userId: string;
   updatedAt: Date;
 }
+
+export interface CreateTagRequest {
+  name: string;
+  color?: string;
+}
