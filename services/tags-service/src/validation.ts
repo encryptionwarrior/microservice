@@ -22,3 +22,12 @@ export const createTagSchema = Joi.object({
         "Color must be a valid hex color format (e.g., #FF5733 or #F73)",
     })
 });
+
+export const validateTagsSchema = Joi.object({
+  tagIds: Joi.array().items(Joi.string().uuid()).min(1).required().messages({
+    "array.base": "Tag IDs must be an array",
+    "array.min": "At least one tag ID is required",
+    "string.uuid": "Each tag ID must be a valid UUID",
+    "any.required": "Tag IDs are required",
+  }),
+});
