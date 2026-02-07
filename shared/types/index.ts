@@ -1,5 +1,3 @@
-
-
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
@@ -12,7 +10,12 @@ export class ServiceError extends Error {
   code?: string;
   details?: any;
 
-  constructor(message: string, statusCode: number, code?: string, details?: any ) {
+  constructor(
+    message: string,
+    statusCode: number,
+    code?: string,
+    details?: any,
+  ) {
     super(message);
     this.name = "ServiceError";
     this.statusCode = statusCode;
@@ -20,7 +23,6 @@ export class ServiceError extends Error {
     this.details = details;
   }
 }
-
 
 export function logError(error: Error, context?: Record<string, any>): void {
   console.error("Error Occured:", {
@@ -46,7 +48,7 @@ export interface JWTPayload {
 export interface CreateNoteRequest {
   title: string;
   content: string;
-  tagIds?: string[]
+  tagIds?: string[];
 }
 
 export interface Note {
@@ -54,9 +56,9 @@ export interface Note {
   title: string;
   content: string;
   isDeleted: boolean;
-  createdAt: Date,
-  updatedAt: Date,
-  tags?: Tag[]
+  createdAt: Date;
+  updatedAt: Date;
+  tags?: Tag[];
 }
 
 export interface Tag {
@@ -70,4 +72,24 @@ export interface Tag {
 export interface CreateTagRequest {
   name: string;
   color?: string;
+}
+
+export interface IUserProfile {
+  id: string;
+  userId: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  bio?: string | null;
+  avatarUrl?: string | null;
+  preferences?: any;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface UpdateProfileRequest {
+  firstName?: string | null;
+  lastName?: string | null;
+  bio?: string | null;
+  avatarUrl?: string | null;
+  preferences?: Record<string, any>;
 }
