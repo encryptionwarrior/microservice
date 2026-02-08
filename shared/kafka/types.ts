@@ -174,3 +174,10 @@ export type KafkaEvent =
   headers?: Record<string, string>; // Message headers
   partition?: number; // Specific partition to send to
 }
+
+export type MessageHandler<T = KafkaEvent> = (
+  event: T,
+  topic: string,
+  partition: number,
+  offset: string
+) => Promise<void>;
