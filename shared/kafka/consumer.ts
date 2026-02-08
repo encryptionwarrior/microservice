@@ -175,7 +175,6 @@ export class KafkaConsumer {
     }
   }
 
-
   async resume(topics: string[]): Promise<void> {
     try {
       this.consumer.resume(topics.map((topic) => ({ topic })));
@@ -187,6 +186,35 @@ export class KafkaConsumer {
     }
   }
 
+  async seek(topic: string, partition: number, offset: string): Promise<void> {
+    try {
+      this.consumer.seek({ topic, partition, offset });
 
+      console.log(`⏩ Seeked to offset ${offset} for ${topic}:${partition}`);
+    } catch (error) {
+      console.error("Error seeking:", error);
+      throw error;
+    }
+  }
 
+  isConsumerConnected(): boolean {
+    return this.isConnected;
+  }
+
+  getHandlersCount(): number {
+    return this.messageHandlers.size;
+  }
+}
+
+export async function createConsumer(
+  groupId: string,
+  topics: string[] | KafkaTopic[],
+  handler: MessageHandler,
+  clientId?: string,
+): Promise<KafkaConsumer> {
+  const consumer = new KafkaConsumer(groupId, clientId);
+  await consumer.connect();
+  await consumer.subscribe(topics, handler);
+  await consumer.start();
+  return consumer;
 }
