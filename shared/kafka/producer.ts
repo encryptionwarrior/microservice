@@ -1,4 +1,4 @@
-import { Kafka, Producer, RecordMetadata } from "kafkajs";
+import { Kafka, Producer, ProducerRecord, RecordMetadata } from "kafkajs";
 import { getKafkaConfig } from "./config";
 import { KafkaEvent, KafkaTopic, ProducerMessageOptions } from "./types";
 import { v4 as uuidv4 } from "uuid";
@@ -69,7 +69,7 @@ export class KafkaProducer {
   async publishEvent<T extends KafkaEvent>(
     topic: KafkaTopic | string,
     event: Omit<T, "eventId" | "timestamp">,
-    options: ProducerMessageOptions,
+    options?: ProducerMessageOptions,
   ): Promise<RecordMetadata[]> {
     if (!this.isConnected) {
       throw new Error("Kafka producer is not connected");
@@ -90,7 +90,7 @@ export class KafkaProducer {
             key: options?.key || fullEvent.eventId,
             value: JSON.stringify(fullEvent),
             headers: options?.headers,
-            partition: options.partition,
+            partition: options?.partition,
           },
         ],
       });
@@ -109,4 +109,84 @@ export class KafkaProducer {
       throw error;
     }
   }
+
+  async publishBatch<T extends KafkaEvent>(
+    topic: KafkaTopic | string,
+    events: Array<Omit<T, "eventId" | "timestamp">>,
+  ): Promise<RecordMetadata[]> {
+    if (!this.isConnected) {
+      throw new Error("Kafka producer is not connected");
+    }
+
+    const messages = events.map((event) => {
+      const fullEvent: KafkaEvent = {
+        ...event,
+        eventId: uuidv4(),
+        timestamp: new Date().toISOString(),
+        version: "1.0",
+      } as unknown as KafkaEvent;
+
+      return {
+        key: fullEvent.eventId,
+        value: JSON.stringify(fullEvent),
+      };
+    });
+
+    try {
+      const result = await this.producer.send({
+        topic,
+        messages,
+      });
+
+      console.log(`📤 Batch published: ${events.length} events to ${topic}`);
+
+      return result;
+    } catch (error) {
+      console.error(`Failed to publish batch to ${topic}:`, error);
+      throw error;
+    }
+  }
+
+  async sendRow(record: ProducerRecord): Promise<RecordMetadata[]> {
+    if (!this.isConnected) {
+      throw new Error("Kafka producer is not connected");
+    }
+
+    try {
+      return await this.producer.send(record);
+    } catch (error) {
+      console.error("Failed to send raw message:", error);
+      throw error;
+    }
+  }
+
+  isProducerConnected(): boolean {
+    return this.isConnected;
+  }
+}
+
+
+let producerInstance: KafkaProducer | null = null;
+
+
+export function getKafkaProducer(clientId?: string): KafkaProducer {
+    if(!producerInstance){
+        producerInstance = new KafkaProducer(clientId);
+    }
+
+    return producerInstance;
+}
+
+export async function publishEvent<T extends KafkaEvent>(
+    topic: KafkaTopic | string,
+    event: Omit<T, "eventId" | "timestamp">,
+    options?: ProducerMessageOptions
+): Promise<RecordMetadata[]> {
+    const producer = getKafkaProducer();
+
+    if(!producer.isProducerConnected()){
+        await producer.connect();
+    }
+
+    return await producer.publishEvent(topic, event, options);
 }
