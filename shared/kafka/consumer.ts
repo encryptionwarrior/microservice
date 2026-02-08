@@ -163,4 +163,30 @@ export class KafkaConsumer {
       );
     }
   }
+
+  async pause(topics: string[]): Promise<void> {
+    try {
+      this.consumer.pause(topics.map((topic) => ({ topic })));
+
+      console.log(`⏸️  Paused consumption from topics: ${topics.join(", ")}`);
+    } catch (error) {
+      console.error("Error pausing consumer:", error);
+      throw error;
+    }
+  }
+
+
+  async resume(topics: string[]): Promise<void> {
+    try {
+      this.consumer.resume(topics.map((topic) => ({ topic })));
+
+      console.log(`⏸️  Resumed consumption from topics: ${topics.join(", ")}`);
+    } catch (error) {
+      console.error("Error resuming consumer:", error);
+      throw error;
+    }
+  }
+
+
+
 }
