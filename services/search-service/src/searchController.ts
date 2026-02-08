@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { SearchQuery } from "./searchService";
 
 interface AuthenticatedRequest extends Request {
   user?: {

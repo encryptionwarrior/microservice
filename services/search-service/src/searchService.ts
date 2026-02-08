@@ -29,6 +29,21 @@ export interface SearchQuery {
   contentLength?: "short" | "medium" | "long";
 }
 
+export interface SearchResult {
+  noteId: string;
+  title: string;
+  content: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+  score: number;
+  highlights?: {
+    title?: string[];
+    content?: string[];
+  };
+}
+
+
 export interface SearchResponse {
   results: SearchResult[];
   total: number;
@@ -39,8 +54,8 @@ export interface SearchResponse {
 }
 
 
-export async function searchNotes(
-    searchQuery: SearchQuery
-): Promise<SearchResponse> {
-    const client = getElasticSearchClient
-}
+// export async function searchNotes(
+//     searchQuery: SearchQuery
+// ): Promise<SearchResponse> {
+//     const client = getElasticSearchClient
+// }

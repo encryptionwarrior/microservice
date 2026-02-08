@@ -44,6 +44,6 @@ router.get("/test-search", async (req, res) => {
 });
 
 
-router.use("/", validateRequest(searchSchema), searchControllers.search)
+// router.use("/", validateRequest(searchSchema), searchControllers.search)
 
 export default router;
