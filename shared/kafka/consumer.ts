@@ -1,6 +1,11 @@
-import { Consumer, EachMessageHandler, Kafka } from "kafkajs";
+import {
+  Consumer,
+  EachMessageHandler,
+  EachMessagePayload,
+  Kafka,
+} from "kafkajs";
 import { getKafkaConfig } from "./config";
-import { KafkaTopic, MessageHandler } from "./types";
+import { KafkaEvent, KafkaTopic, MessageHandler } from "./types";
 
 export class KafkaConsumer {
   private kafka: Kafka;
@@ -92,6 +97,70 @@ export class KafkaConsumer {
     } catch (error) {
       console.error("Failed to subscribe to topics:", error);
       throw error;
+    }
+  }
+
+  async subscribeTopic(
+    topic: string | KafkaTopic,
+    handler: MessageHandler,
+  ): Promise<void> {
+    return this.subscribe([topic], handler);
+  }
+
+  async start(): Promise<void> {
+    if (!this.isConnected) {
+      throw new Error("Kafka consumer is not connected");
+    }
+
+    try {
+      await this.consumer.run({
+        autoCommit: true,
+        autoCommitInterval: 5000,
+        eachMessage: async (payload: EachMessagePayload) => {
+          await this.handleMessage(payload);
+        },
+      });
+
+      console.log("🚀 Kafka consumer started and listening for messages");
+    } catch (error) {
+      console.error("Error starting Kafka consumer:", error);
+      throw error;
+    }
+  }
+
+  private async handleMessage(payload: EachMessagePayload): Promise<void> {
+    const { topic, partition, message } = payload;
+
+    try {
+      const value = message.value?.toString();
+      if (!value) {
+        console.warn(`Empty message received from ${topic}`);
+        return;
+      }
+
+      const event: KafkaEvent = JSON.parse(value);
+
+      console.log(
+        `📨 Received event: ${event.eventType} from ${topic} [partition: ${partition}, offset: ${message.offset}]`,
+      );
+
+      const handler = this.messageHandlers.get(topic);
+
+      if (!handler) {
+        console.warn(`No message handlers registered for ${topic}.`);
+        return;
+      }
+
+      await handler(event, topic, partition, message.offset);
+
+      console.log(
+        `✅ Successfully processed event: ${event.eventType} (${event.eventId})`,
+      );
+    } catch (error) {
+      console.error(
+        `❌ Error processing message from ${topic} [partition: ${partition}, offset: ${message.offset}]:`,
+        error,
+      );
     }
   }
 }
