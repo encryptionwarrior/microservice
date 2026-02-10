@@ -1,0 +1,72 @@
+From node:18-alpine AS base
+RUN apk add --no-cache dumb-init
+WORKDIR /app 
+
+FROM base AS share-buider 
+WORKDIR /app 
+COPY shared/package*.json ./shared/
+COPY shared/ ./shared/
+WORKDIR /app/shared 
+RUN npm install && npm run build 
+
+
+FROM base AS builder 
+WORKDIR /app 
+
+
+COPY --from=shared-builder /app/shared ./node_modules/shared/   
+
+
+COPY services/notes-services/package*.json ./services/notes-services/
+WORKDIR /app/services/notes-service 
+
+
+
+RUN sed -i '/"microservices-practice\/shared":/d' package.json 
+
+
+RUN npm install 
+
+COPY services/notes-services/src ./src 
+COPY services/notes-services/prisma ./prisma 
+COPY services/notes-services/tsconfig.json ./
+
+
+RUN npx prisma generate 
+
+RUN npx tsc 
+
+
+FROM node:18-alpine AS production 
+
+
+RUN apk add --no-cache dumb-init postgresql-client wget 
+
+RUN addgroup -g 1001 -S nodejs
+RUN addgroup -S appuser -u 1001
+
+
+WORKDIR /app 
+
+COPY --from=builder --chown=appuser:nodejs /app/services/notes-services/dist ./dist 
+COPY --from=builder --chown=appuser:nodejs /app/services/notes-services/node_modules ./node_modules 
+COPY --from=builder --chown=appuser:nodejs /app/services/notes-services/shared ./shared 
+
+COPY --from=builder --chown=appuser:nodejs /app/services/notes-services/prisma ./prisma 
+
+COPY services/notes-service/docker-entrypoint.sh ./docker-entrypoint.sh 
+RUN chmod +x ./docker-entrypint.sh 
+
+USER appuser 
+
+EXPOSE 3003 
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \ 
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3003/health || exit 1 
+
+
+ENTRYPOINT [ "dumb-init", "--" ]
+CMD ["./docker-entrypint.sh"]
+
+
+
