@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: microservice-postgres
+    environment:
+      POSTGRES_USER: microservices
+      POSTGRES_PASSWORD: microservices123
+      POSTGRES_DB: microservices
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+    networks:
+      - microservice-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U microservices"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  notes-services:
+    build:
+      context: .
+      dockerfile: services/notes-services/Dockerfile
+    container_name: microservice-notes-services
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - DATABASE_URL=postgresql://microservices:microservices123@postgres:5432/microservices
+      - CORS_ORIGIN=http://localhost:3000
+      - CORS_CREDENTIALS=true
+    ports:
+      - "3003:3003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - microservice-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:3003/health || exit 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  microservice-network:
+    driver: bridge

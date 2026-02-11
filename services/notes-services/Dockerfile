@@ -1,4 +1,4 @@
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 RUN apk add --no-cache dumb-init
 WORKDIR /app
 
@@ -25,7 +25,7 @@ COPY services/notes-services/tsconfig.json ./
 RUN npx prisma generate
 RUN npx tsc
 
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 RUN apk add --no-cache dumb-init postgresql-client wget
 
 RUN addgroup -g 1001 -S nodejs
