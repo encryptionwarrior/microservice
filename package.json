@@ -1,8 +1,37 @@
 {
-  "dependencies": {
-    "joi": "^18.0.2"
+  "name": "microservices-practice",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "repository": "https://github.com/encryptionwarrior/microservice.git",
+  "author": "creativeSandeepKumar <sdp4209@gmail.com>",
+  "license": "MIT",
+  "workspaces": [
+    "shared",
+    "api-gateway",
+    "services/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "dev": "npm run dev --workspaces",
+    "test": "npm run test --workspaces",
+    "clean": "npm run clean --workspaces",
+    "install-all": "npm install",
+    "build:shared": "npm run build -w shared",
+    "dev:auth": "npm run dev -w auth-services",
+    "dev:notes": "npm run dev -w notes-services",
+    "dev:tags": "npm run dev -w tags-service",
+    "dev:audit": "npm run dev -w audit-service",
+    "dev:user": "npm run dev -w user-service",
+    "dev:search": "npm run dev -w search-service",
+    "dev:gateway": "npm run dev -w api-gateway"
   },
   "devDependencies": {
-    "prisma": "^7.3.0"
+    "typescript": "^5.8.3",
+    "@types/node": "^24.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   }
 }
