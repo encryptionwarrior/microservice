@@ -1,6 +1,5 @@
-import { CreateNoteRequest, Note } from "@shared/types";
 import { TagsServiceClient } from "./tagsServiceClient";
-import { createServiceError, sanitizeInput } from "@shared/utils";
+import { createServiceError, sanitizeInput,  CreateNoteRequest, Note } from "@microservices-practice/shared";
 import prisma from "./database";
 
 export class NotesService {

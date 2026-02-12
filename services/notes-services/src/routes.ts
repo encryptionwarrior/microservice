@@ -1,4 +1,4 @@
-import { authenticateToken, validateRequest } from "@shared/middleware";
+import { authenticateToken, validateRequest } from "@microservices-practice/shared";
 import { Router } from "express";
 import { createNoteSchema, getNotesByUserSchema } from "./validation";
 import * as noteController from "./noteController";

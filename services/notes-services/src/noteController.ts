@@ -1,11 +1,7 @@
-import { asyncHandler } from "@shared/middleware";
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  parseEnvInt,
-} from "@shared/utils";
+
 import { Request, Response } from "express";
 import { NotesService } from "./notesService";
+import { asyncHandler, createErrorResponse, createSuccessResponse, parseEnvInt } from "@microservices-practice/shared";
 
 const noteService = new NotesService();
 

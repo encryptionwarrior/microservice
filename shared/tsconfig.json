@@ -1,10 +1,17 @@
 {
+   "name": "@microservices-practice/shared",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
   "compilerOptions": {
     "target": "ES2020",
     "module": "commonjs",
     "lib": ["ES2020"],
     "outDir": "./dist",
-    "rootDir": "./",
+"rootDir": ".",
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,

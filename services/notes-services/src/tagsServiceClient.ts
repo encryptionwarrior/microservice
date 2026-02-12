@@ -1,4 +1,4 @@
-import { createServiceError } from "@shared/utils";
+import { createServiceError } from "@microservices-practice/shared";
 import axios from "axios";
 
 
@@ -41,7 +41,7 @@ export class TagsServiceClient {
 
             return response.data.data;
 
-        } catch (error) {
+        } catch (error: any) {
             if(error.response){
                 const statusCode = error.response?.status || 500;
                 const message = error.response?.data?.error || "Tag validation failed";
