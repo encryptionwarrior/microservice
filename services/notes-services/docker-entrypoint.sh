@@ -59,4 +59,5 @@ npx prisma migrate deploy --config prisma.config.ts
 
 
 echo "✅ Starting Notes Service application..."
-exec node dist/index.js
+# exec node dist/index.js
+exec node dist/src/index.js
