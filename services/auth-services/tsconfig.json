@@ -21,20 +21,22 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
-    "baseUrl": "./",
-    "paths": {
-      "@/*": ["src/*"],
-      "@shared/*": ["../../shared/*"]
-    }
+    "baseUrl": "./"
+    // "paths": {
+    //   "@/*": ["src/*"],
+    //   "@shared/*": ["../../shared/*"]
+    // }
   },
-  "include": [
-    "src/**/*",
-    "../../shared/**/*",
-    "prisma.config.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+  // "include": [
+  //   "src/**/*",
+  //   "../../shared/**/*",
+  //   "prisma.config.ts"
+  // ],
+  // "exclude": [
+  //   "node_modules",
+  //   "dist",
+  //   "**/*.test.ts"
+  // ]
 }
