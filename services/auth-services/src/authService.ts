@@ -1,9 +1,8 @@
-import { AuthTokens, ServiceError } from "@shared/types";
 import prisma from "./database";
 import bcrypt from "bcryptjs";
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 import { StringValue } from "ms";
-import { createServiceError } from "@shared/utils";
+import { createServiceError, AuthTokens, ServiceError } from "@microservices-practice/shared";
 
 export class AuthService {
   private readonly jwtSecret: string;
@@ -92,7 +91,7 @@ export class AuthService {
       if (error instanceof ServiceError) {
         throw error;
       }
-      throw createServiceError("Invalid refresh token", 401, error);
+      throw createServiceError("Invalid refresh token", 401, error as string);
     }
   }
 
@@ -120,7 +119,7 @@ export class AuthService {
         throw createServiceError("Invalid token", 401);
       }
 
-      throw createServiceError("Token validation failed", 500, error);
+      throw createServiceError("Token validation failed", 500, error as string);
     }
   }
 

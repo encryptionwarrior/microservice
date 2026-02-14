@@ -33,5 +33,6 @@ npx prisma migrate deploy --config prisma.config.ts
 
 echo "✅ Starting Auth Service application..."
 
-exec node dist/src/index.js
+# exec node dist/src/index.js
+exec node dist/index.js
 

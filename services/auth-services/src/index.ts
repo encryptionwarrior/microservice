@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
 import authRoutes from "./routes";
-import { corsOptions, errorHandler, healthCheck } from "@shared/middleware";
+import { corsOptions, errorHandler, healthCheck } from "@microservices-practice/shared";
 
 dotenv.config({
   path: require("path").resolve(__dirname, "../.env"),

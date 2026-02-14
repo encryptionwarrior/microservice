@@ -1,3 +1,106 @@
+# services:
+#   # postgres:
+#   #   image: postgres:16-alpine
+#   #   container_name: microservice-postgres
+#   #   environment:
+#   #     POSTGRES_USER: microservices
+#   #     POSTGRES_PASSWORD: microservices123
+#   #     POSTGRES_DB: microservices
+#   #   ports:
+#   #     - "5432:5432"
+#   #   volumes:
+#   #     - postgres_data:/var/lib/postgresql/data
+#   #   networks:
+#   #     - microservice-network
+#   #   healthcheck:
+#   #     test: ["CMD-SHELL", "pg_isready -U microservices"]
+#   #     interval: 10s
+#   #     timeout: 5s
+#   #     retries: 5
+#   postgres:
+#   image: postgres:16-alpine
+#   container_name: microservice-postgres
+#   environment:
+#     POSTGRES_USER: microservices
+#     POSTGRES_PASSWORD: microservices123
+#     POSTGRES_DB: postgres
+#   ports:
+#     - "5432:5432"
+#   volumes:
+#     - postgres_data:/var/lib/postgresql/data
+#     - ./docker/init-databases.sql:/docker-entrypoint-initdb.d/init.sql
+#   networks:
+#     - microservice-network
+
+#   notes-services:
+#     build:
+#       context: .
+#       dockerfile: services/notes-services/Dockerfile
+#     container_name: microservice-notes-services
+#     environment:
+#       - NODE_ENV=production
+#       - PORT=3003
+#       - DATABASE_URL=postgresql://microservices:microservices123@postgres:5432/microservices
+#       - CORS_ORIGIN=http://localhost:3000
+#       - CORS_CREDENTIALS=true
+#     ports:
+#       - "3003:3003"
+#     depends_on:
+#       postgres:
+#         condition: service_healthy
+#     networks:
+#       - microservice-network
+#     healthcheck:
+#       test:
+#         [
+#           "CMD-SHELL",
+#           "wget --no-verbose --tries=1 --spider http://localhost:3003/health || exit 1",
+#         ]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 3
+#       start_period: 40s
+#     restart: unless-stopped
+
+
+#   auth-services:
+#     build:
+#       context: .
+#       dockerfile: services/auth-services/Dockerfile
+#     container_name: microservice-auth-services
+#     environment:
+#       - NODE_ENV=production
+#       - PORT=3001
+#       - DATABASE_URL=postgresql://microservices:microservices123@postgres:5432/microservices
+#       - CORS_ORIGIN=http://localhost:3000
+#       - CORS_CREDENTIALS=true
+#     ports:
+#       - "3001:3001"
+#     depends_on:
+#       postgres:
+#         condition: service_healthy
+#     networks:
+#       - microservice-network
+#     healthcheck:
+#       test:
+#         [
+#           "CMD-SHELL",
+#           "wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1",
+#         ]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 3
+#       start_period: 40s
+#     restart: unless-stopped
+
+# volumes:
+#   postgres_data:
+
+# networks:
+#   microservice-network:
+#     driver: bridge
+
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -5,15 +108,18 @@ services:
     environment:
       POSTGRES_USER: microservices
       POSTGRES_PASSWORD: microservices123
-      POSTGRES_DB: microservices
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-databases.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - microservice-network
+    
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U microservices"]
+      # test: ["CMD-SHELL", "pg_isready -U microservices"]
+      test: ["CMD-SHELL", "pg_isready -U microservices -d postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,7 +132,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3003
-      - DATABASE_URL=postgresql://microservices:microservices123@postgres:5432/microservices
+      - DATABASE_URL=postgresql://microservices:microservices123@postgres:5432/notes_db
       - CORS_ORIGIN=http://localhost:3000
       - CORS_CREDENTIALS=true
     ports:
@@ -38,16 +144,12 @@ services:
       - microservice-network
     healthcheck:
       test:
-        [
-          "CMD-SHELL",
-          "wget --no-verbose --tries=1 --spider http://localhost:3003/health || exit 1",
-        ]
+        ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3003/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
     restart: unless-stopped
-
 
   auth-services:
     build:
@@ -57,9 +159,13 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - DATABASE_URL=postgresql://microservices:microservices123@postgres:5432/microservices
+      - DATABASE_URL=postgresql://microservices:microservices123@postgres:5432/auth_db
       - CORS_ORIGIN=http://localhost:3000
       - CORS_CREDENTIALS=true
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+      - JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-this-in-production
+      - JWT_EXPIRES_IN=15m
+      - JWT_REFRESH_EXPIRES_IN=7d
     ports:
       - "3001:3001"
     depends_on:
@@ -69,10 +175,7 @@ services:
       - microservice-network
     healthcheck:
       test:
-        [
-          "CMD-SHELL",
-          "wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1",
-        ]
+        ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -85,3 +188,4 @@ volumes:
 networks:
   microservice-network:
     driver: bridge
+

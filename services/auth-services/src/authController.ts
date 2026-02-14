@@ -1,7 +1,6 @@
-import { asyncHandler } from "@shared/middleware";
 import { Request, Response } from "express";
 import { AuthService } from "./authService";
-import { createErrorResponse, createSuccessResponse } from "@shared/utils";
+import { asyncHandler, createErrorResponse, createSuccessResponse } from "@microservices-practice/shared";
 
 const authService = new AuthService();
 
