@@ -12,19 +12,28 @@
     "services/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
-    "dev": "npm run dev --workspaces",
-    "test": "npm run test --workspaces",
-    "clean": "npm run clean --workspaces",
-    "install-all": "npm install",
-    "build:shared": "npm run build -w shared",
-    "dev:auth": "npm run dev -w auth-services",
-    "dev:notes": "npm run dev -w notes-services",
-    "dev:tags": "npm run dev -w tags-service",
-    "dev:audit": "npm run dev -w audit-service",
-    "dev:user": "npm run dev -w user-service",
-    "dev:search": "npm run dev -w search-service",
-    "dev:gateway": "npm run dev -w api-gateway"
+    "build": "yarn workspaces run build",
+    "dev": "yarn workspaces run dev",
+    "test": "yarn workspaces run test",
+    "clean": "yarn workspaces run clean",
+
+    "build:shared": "yarn workspace @microservices-practice/shared build",
+    "dev:auth": "yarn workspace auth-services dev",
+    "dev:notes": "yarn workspace notes-services dev",
+    "dev:tags": "yarn workspace tags-service dev",
+    "dev:audit": "yarn workspace audit-service dev",
+    "dev:user": "yarn workspace user-service dev",
+    "dev:search": "yarn workspace search-service dev",
+    "dev:gateway": "yarn workspace api-gateway dev",
+
+    "docker:dev": "docker compose -f docker-compose.base.yaml -f docker-compose.dev.yaml up --build",
+    "docker:dev:detach": "docker compose -f docker-compose.base.yaml -f docker-compose.dev.yaml up --build -d",
+    "docker:dev:down": "docker compose -f docker-compose.base.yaml -f docker-compose.dev.yaml down",
+
+    "docker:prod": "docker compose -f docker-compose.base.yaml -f docker-compose.prod.yaml up --build -d",
+    "docker:prod:down": "docker compose -f docker-compose.base.yaml -f docker-compose.prod.yaml down",
+
+    "docker:clean": "docker compose -f docker-compose.base.yaml -f docker-compose.dev.yaml down -v --remove-orphans"
   },
   "devDependencies": {
     "typescript": "^5.8.3",
@@ -32,6 +41,6 @@
   },
   "engines": {
     "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "yarn": ">=1.22.0"
   }
 }

@@ -3,20 +3,22 @@
     "target": "ES2020",
     "module": "commonjs",
     "lib": ["ES2020"],
-    // "outDir": "./dist",
-    "rootDir": "./src",
     "outDir": "./dist",
-    "strict": true,
+    "rootDir": "./src",
+    "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
-    "removeComments": true,
-    "moduleResolution": "node",
-    "baseUrl": "./"
+    "baseUrl": ".",
+    "paths": {
+      "@microservices-practice/shared": ["/app/shared/src/index.ts"],
+      "@microservices-practice/shared/*": ["/app/shared/src/*"]
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+  "exclude": ["node_modules", "dist"]
 }

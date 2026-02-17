@@ -1,0 +1,33 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.base.yaml
+# Shared infrastructure — extended by .dev and .prod compose files.
+# Never run this file directly.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: microservice-postgres
+    environment:
+      POSTGRES_USER: microservices
+      POSTGRES_PASSWORD: microservices123
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-databases.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - microservice-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U microservices -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+networks:
+  microservice-network:
+    driver: bridge

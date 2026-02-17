@@ -1,0 +1,103 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.prod.yaml  — PRODUCTION
+#
+# Usage:
+#   docker compose -f docker-compose.base.yaml -f docker-compose.prod.yaml up -d
+#   (or just: yarn docker:prod)
+#
+# Features:
+#   ✓ Multi-stage build (compiled, minimal image)
+#   ✓ Non-root user (appuser)
+#   ✓ No source mounts — image is self-contained
+#   ✓ Reads from .env.production
+#   ✓ Strict healthchecks + restart policies
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── Postgres ──────────────────────────────────────────────────────────────
+  postgres:
+    env_file:
+      - .env.production
+    # No port exposure in prod — only internal network access
+    ports: !reset []
+
+  # ── Notes Service ─────────────────────────────────────────────────────────
+  notes-services:
+    build:
+      context: .
+      dockerfile: services/notes-services/Dockerfile
+      target: production
+    container_name: microservice-notes-services
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - DATABASE_URL=postgresql://microservices:microservices123@postgres:5432/notes_db
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3000}
+      - CORS_CREDENTIALS=true
+    ports:
+      - "3003:3003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - microservice-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3003/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "0.5"
+
+  # ── Auth Service ──────────────────────────────────────────────────────────
+  auth-services:
+    build:
+      context: .
+      dockerfile: services/auth-services/Dockerfile
+      target: production
+    container_name: microservice-auth-services
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=postgresql://microservices:microservices123@postgres:5432/auth_db
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3000}
+      - CORS_CREDENTIALS=true
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-15m}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-7d}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - microservice-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "0.5"
+
+volumes:
+  postgres_data:
+
+networks:
+  microservice-network:
+    driver: bridge
