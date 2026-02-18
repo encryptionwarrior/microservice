@@ -1,15 +1,13 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # docker-compose.dev.yaml  — DEVELOPMENT
 #
-# Usage:
-#   docker compose -f docker-compose.base.yaml -f docker-compose.dev.yaml up --build
-#   (or: yarn docker:dev)
-#
 # How shared works:
-#   - shared is built inside the image at /app/shared (with its own node_modules)
-#   - ./shared/src is mounted live so changes hot-reload without rebuilding
-#   - tsconfig paths in each service maps @microservices-practice/shared -> /app/shared/src
-#   - node_modules named volumes prevent the host from overwriting container deps
+#   - Dockerfile builds shared (yarn install + tsc) into /app/shared/dist
+#   - yarn install uses `file:/app/shared` so @microservices-practice/shared
+#     is installed as a real package with proper types from dist/index.d.ts
+#   - ./shared/dist is mounted live — run `yarn build:shared` locally and
+#     nodemon auto-restarts the service
+#   - node_modules named volumes prevent host from overwriting container deps
 # ─────────────────────────────────────────────────────────────────────────────
 
 services:
@@ -17,7 +15,6 @@ services:
     env_file:
       - .env.development
 
-  # ── Notes Service ─────────────────────────────────────────────────────────
   notes-services:
     build:
       context: .
@@ -40,10 +37,10 @@ services:
       - ./services/notes-services/prisma:/app/services/notes-services/prisma
       - ./services/notes-services/tsconfig.json:/app/services/notes-services/tsconfig.json
       - ./services/notes-services/prisma.config.ts:/app/services/notes-services/prisma.config.ts
-      # ── Shared source (hot reload) ────────────────────────────────────────
-      # Mounts over the image's copy — ts-node resolves via tsconfig paths
-      - ./shared/src:/app/shared/src
-      # ── Preserve node_modules built inside the container ─────────────────
+      # ── Shared dist (live reload on shared changes) ───────────────────────
+      # Run `yarn build:shared` locally → nodemon detects change → restarts
+      - ./shared/dist:/app/shared/dist
+      # ── node_modules stays inside container (NO root_node_modules mount) ──
       - notes_node_modules:/app/services/notes-services/node_modules
       - shared_node_modules:/app/shared/node_modules
     depends_on:
@@ -59,7 +56,6 @@ services:
       start_period: 20s
     restart: unless-stopped
 
-  # ── Auth Service ──────────────────────────────────────────────────────────
   auth-services:
     build:
       context: .
@@ -86,9 +82,9 @@ services:
       - ./services/auth-services/prisma:/app/services/auth-services/prisma
       - ./services/auth-services/tsconfig.json:/app/services/auth-services/tsconfig.json
       - ./services/auth-services/prisma.config.ts:/app/services/auth-services/prisma.config.ts
-      # ── Shared source (hot reload) ────────────────────────────────────────
-      - ./shared/src:/app/shared/src
-      # ── Preserve node_modules built inside the container ─────────────────
+      # ── Shared dist (live reload on shared changes) ───────────────────────
+      - ./shared/dist:/app/shared/dist
+      # ── node_modules stays inside container ───────────────────────────────
       - auth_node_modules:/app/services/auth-services/node_modules
       - shared_node_modules:/app/shared/node_modules
     depends_on:

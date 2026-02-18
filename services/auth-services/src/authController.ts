@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import { AuthService } from "./authService";
-import { asyncHandler, createErrorResponse, createSuccessResponse } from "@microservices-practice/shared";
+import {
+  asyncHandler,
+  createErrorResponse,
+  createSuccessResponse,
+} from "@microservices-practice/shared";
 
 const authService = new AuthService();
 
@@ -73,19 +77,22 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
     .json(createSuccessResponse(user, "User profile fetched successfully"));
 });
 
-export const deleteAccount = asyncHandler(
-  async (req: Request, res: Response) => {
-    const userId = req.user?.userId;
-    if (!userId) {
-      return res
-        .status(404)
-        .json(createErrorResponse("Unauthenticated: user not found"));
-    }
 
-    await authService.deleteUser(userId);
 
+
+export const deleteAccount = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
     res
-      .status(200)
-      .json(createSuccessResponse(null, "User account deleted successfully"));
-  },
-);
+      .status(404)
+      .json(createErrorResponse("Unauthenticated: user not found"));
+    return;
+  }
+
+  const user = await authService.deleteUser(userId);
+
+  res
+    .status(200)
+    .json(createSuccessResponse(user, "User profile deleted successfully"));
+});
