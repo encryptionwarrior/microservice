@@ -77,22 +77,28 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
     .json(createSuccessResponse(user, "User profile fetched successfully"));
 });
 
+export const deleteAccount = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      res
+        .status(404)
+        .json(createErrorResponse("Unauthenticated: user not found"));
+      return;
+    }
+
+    console.log("ddhdd")
+
+    const user = await authService.deleteUser(userId);
+    console.log("check obstruction ++++");
+    console.log("check obstruction ++++");
 
 
+    console.log("check obstruction +++ghghtrhtyh+");
 
-export const deleteAccount = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user?.userId;
-
-  if (!userId) {
     res
-      .status(404)
-      .json(createErrorResponse("Unauthenticated: user not found"));
-    return;
-  }
-
-  const user = await authService.deleteUser(userId);
-
-  res
-    .status(200)
-    .json(createSuccessResponse(user, "User profile deleted successfully"));
-});
+      .status(200)
+      .json(createSuccessResponse(user, "User profile deleted successfully"));
+  },
+);

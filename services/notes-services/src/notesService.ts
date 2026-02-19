@@ -1,5 +1,10 @@
 import { TagsServiceClient } from "./tagsServiceClient";
-import { createServiceError, sanitizeInput,  CreateNoteRequest, Note } from "@microservices-practice/shared";
+import {
+  createServiceError,
+  sanitizeInput,
+  CreateNoteRequest,
+  Note,
+} from "@microservices-practice/shared";
 import prisma from "./database";
 
 export class NotesService {
@@ -33,11 +38,17 @@ export class NotesService {
       }
 
       await this.addTagsToNote(note.id, noteData.tagIds);
+      console.log("check ++++  fdsfdsf fdsf ");
+      console.log("check ++++  fdsfdsf fdsf ");
+      console.log("check ++++  fdsfdsf fdsf   cxcxcxcxc");
+      console.log("check ++++  fdsfdsf fdsf   cxcxcxcxc");
 
       const noteWithTags = await this.getNoteById(note.id, userId);
 
       return noteWithTags;
     }
+
+    console.log("schek ser");
 
     return note as Note;
   }

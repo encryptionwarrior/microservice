@@ -19,6 +19,8 @@ const PORT = process.env.PORT || 3003;
 app.use(cors(corsOptions()));
 app.use(helmet());
 
+console.log("check working  +++ vcvcvvcxvccxv cvv")
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 

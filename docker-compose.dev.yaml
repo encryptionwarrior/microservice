@@ -1,14 +1,115 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# docker-compose.dev.yaml  — DEVELOPMENT
-#
-# How shared works:
-#   - Dockerfile builds shared (yarn install + tsc) into /app/shared/dist
-#   - yarn install uses `file:/app/shared` so @microservices-practice/shared
-#     is installed as a real package with proper types from dist/index.d.ts
-#   - ./shared/dist is mounted live — run `yarn build:shared` locally and
-#     nodemon auto-restarts the service
-#   - node_modules named volumes prevent host from overwriting container deps
-# ─────────────────────────────────────────────────────────────────────────────
+# # ─────────────────────────────────────────────────────────────────────────────
+# # docker-compose.dev.yaml  — DEVELOPMENT
+# #
+# # How shared works:
+# #   - Dockerfile builds shared (yarn install + tsc) into /app/shared/dist
+# #   - yarn install uses `file:/app/shared` so @microservices-practice/shared
+# #     is installed as a real package with proper types from dist/index.d.ts
+# #   - ./shared/dist is mounted live — run `yarn build:shared` locally and
+# #     nodemon auto-restarts the service
+# #   - node_modules named volumes prevent host from overwriting container deps
+# # ─────────────────────────────────────────────────────────────────────────────
+
+# services:
+#   postgres:
+#     env_file:
+#       - .env.development
+
+#   notes-services:
+#     build:
+#       context: .
+#       dockerfile: services/notes-services/Dockerfile.dev
+#     container_name: microservice-notes-services-dev
+#     env_file:
+#       - .env.development
+#     environment:
+#       - NODE_ENV=development
+#       - PORT=3003
+#       - DATABASE_URL=postgresql://microservices:microservices123@postgres:5432/notes_db
+#       - CORS_ORIGIN=http://localhost:3000
+#       - CORS_CREDENTIALS=true
+#     ports:
+#       - "3003:3003"
+#       - "9229:9229"
+#     volumes:
+#       # ── Service source (hot reload) ───────────────────────────────────────
+#       - ./services/notes-services/src:/app/services/notes-services/src
+#       - ./services/notes-services/prisma:/app/services/notes-services/prisma
+#       - ./services/notes-services/tsconfig.json:/app/services/notes-services/tsconfig.json
+#       - ./services/notes-services/prisma.config.ts:/app/services/notes-services/prisma.config.ts
+#       # ── Shared dist (live reload on shared changes) ───────────────────────
+#       # Run `yarn build:shared` locally → nodemon detects change → restarts
+#       - ./shared/dist:/app/shared/dist
+#       # ── node_modules stays inside container (NO root_node_modules mount) ──
+#       - notes_node_modules:/app/services/notes-services/node_modules
+#       - shared_node_modules:/app/shared/node_modules
+#     depends_on:
+#       postgres:
+#         condition: service_healthy
+#     networks:
+#       - microservice-network
+#     healthcheck:
+#       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3003/health || exit 1"]
+#       interval: 15s
+#       timeout: 5s
+#       retries: 5
+#       start_period: 20s
+#     restart: unless-stopped
+
+#   auth-services:
+#     build:
+#       context: .
+#       dockerfile: services/auth-services/Dockerfile.dev
+#     container_name: microservice-auth-services-dev
+#     env_file:
+#       - .env.development
+#     environment:
+#       - NODE_ENV=development
+#       - PORT=3001
+#       - DATABASE_URL=postgresql://microservices:microservices123@postgres:5432/auth_db
+#       - CORS_ORIGIN=http://localhost:3000
+#       - CORS_CREDENTIALS=true
+#       - JWT_SECRET=dev-jwt-secret-not-for-production
+#       - JWT_REFRESH_SECRET=dev-refresh-secret-not-for-production
+#       - JWT_EXPIRES_IN=15m
+#       - JWT_REFRESH_EXPIRES_IN=7d
+#     ports:
+#       - "3001:3001"
+#       - "9230:9229"
+#     volumes:
+#       # ── Service source (hot reload) ───────────────────────────────────────
+#       - ./services/auth-services/src:/app/services/auth-services/src
+#       - ./services/auth-services/prisma:/app/services/auth-services/prisma
+#       - ./services/auth-services/tsconfig.json:/app/services/auth-services/tsconfig.json
+#       - ./services/auth-services/prisma.config.ts:/app/services/auth-services/prisma.config.ts
+#       # ── Shared dist (live reload on shared changes) ───────────────────────
+#       - ./shared/dist:/app/shared/dist
+#       # ── node_modules stays inside container ───────────────────────────────
+#       - auth_node_modules:/app/services/auth-services/node_modules
+#       - shared_node_modules:/app/shared/node_modules
+#     depends_on:
+#       postgres:
+#         condition: service_healthy
+#     networks:
+#       - microservice-network
+#     healthcheck:
+#       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1"]
+#       interval: 15s
+#       timeout: 5s
+#       retries: 5
+#       start_period: 20s
+#     restart: unless-stopped
+
+# volumes:
+#   postgres_data:
+#   notes_node_modules:
+#   auth_node_modules:
+#   shared_node_modules:
+
+# networks:
+#   microservice-network:
+#     driver: bridge
+
 
 services:
   postgres:
@@ -32,15 +133,12 @@ services:
       - "3003:3003"
       - "9229:9229"
     volumes:
-      # ── Service source (hot reload) ───────────────────────────────────────
       - ./services/notes-services/src:/app/services/notes-services/src
       - ./services/notes-services/prisma:/app/services/notes-services/prisma
       - ./services/notes-services/tsconfig.json:/app/services/notes-services/tsconfig.json
       - ./services/notes-services/prisma.config.ts:/app/services/notes-services/prisma.config.ts
-      # ── Shared dist (live reload on shared changes) ───────────────────────
-      # Run `yarn build:shared` locally → nodemon detects change → restarts
+      - ./services/notes-services/nodemon.json:/app/services/notes-services/nodemon.json
       - ./shared/dist:/app/shared/dist
-      # ── node_modules stays inside container (NO root_node_modules mount) ──
       - notes_node_modules:/app/services/notes-services/node_modules
       - shared_node_modules:/app/shared/node_modules
     depends_on:
@@ -77,14 +175,12 @@ services:
       - "3001:3001"
       - "9230:9229"
     volumes:
-      # ── Service source (hot reload) ───────────────────────────────────────
       - ./services/auth-services/src:/app/services/auth-services/src
       - ./services/auth-services/prisma:/app/services/auth-services/prisma
       - ./services/auth-services/tsconfig.json:/app/services/auth-services/tsconfig.json
       - ./services/auth-services/prisma.config.ts:/app/services/auth-services/prisma.config.ts
-      # ── Shared dist (live reload on shared changes) ───────────────────────
+      - ./services/auth-services/nodemon.json:/app/services/auth-services/nodemon.json
       - ./shared/dist:/app/shared/dist
-      # ── node_modules stays inside container ───────────────────────────────
       - auth_node_modules:/app/services/auth-services/node_modules
       - shared_node_modules:/app/shared/node_modules
     depends_on:

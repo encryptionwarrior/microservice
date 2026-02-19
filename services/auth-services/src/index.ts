@@ -19,6 +19,7 @@ app.use(helmet());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
+console.log("fdsfdsfds dsf dsf")
 
 app.use("/auth", authRoutes);
 app.use("/health", healthCheck);
