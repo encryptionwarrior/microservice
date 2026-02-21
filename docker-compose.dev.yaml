@@ -110,7 +110,6 @@
 #   microservice-network:
 #     driver: bridge
 
-
 services:
   postgres:
     env_file:
@@ -130,6 +129,10 @@ services:
       - DATABASE_URL=postgresql://notes_user:notes_pass@postgres:5432/notes_db
       - CORS_ORIGIN=http://localhost:3000
       - CORS_CREDENTIALS=true
+      - JWT_SECRET=dev-jwt-secret-not-for-production
+      - JWT_REFRESH_SECRET=dev-refresh-secret-not-for-production
+      - JWT_EXPIRES_IN=15m
+      - JWT_REFRESH_EXPIRES_IN=7d
     ports:
       - "3003:3003"
       - "9229:9229"
@@ -148,7 +151,11 @@ services:
     networks:
       - microservice-network
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3003/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:3003/health || exit 1",
+        ]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -191,7 +198,11 @@ services:
     networks:
       - microservice-network
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1",
+        ]
       interval: 15s
       timeout: 5s
       retries: 5

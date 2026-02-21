@@ -84,6 +84,8 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
 
     const jwtSecret = process.env.JWT_SECRET!;
 
+    console.log("check jwt secret ++++", jwtSecret)
+
     if(!jwtSecret){
       logError(new Error("JWT secret not defined in environment variables"));
 
