@@ -2,7 +2,13 @@ import prisma from "./database";
 import bcrypt from "bcryptjs";
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 import { StringValue } from "ms";
-import { createServiceError, AuthTokens, ServiceError } from "@microservices-practice/shared";
+import {
+  createServiceError,
+  AuthTokens,
+  ServiceError,
+  publishEvent,
+  KafkaTopic,
+} from "@microservices-practice/shared";
 
 export class AuthService {
   private readonly jwtSecret: string;
@@ -43,6 +49,17 @@ export class AuthService {
         password: hashedPassword,
       },
     });
+
+    try {
+      await publishEvent(KafkaTopic.USER_LIFECYCLE, {
+        eventType: "UserRegistered",
+        userId: user.id,
+        email: user.email,
+      } as any);
+      console.log(`✅ Published UserRegistered event for user: ${user.id}`);
+    } catch (error) {
+      console.error("❌ Failed to publish UserRegistered event:", error);
+    }
 
     return this.generateTokens(user.id, user.email);
   }
