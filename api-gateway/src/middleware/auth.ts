@@ -1,4 +1,4 @@
-import { createErrorResponse } from "@shared/utils";
+import { createErrorResponse } from "@microservices-practice/shared";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 

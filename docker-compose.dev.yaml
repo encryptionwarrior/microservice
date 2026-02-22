@@ -209,10 +209,59 @@ services:
       start_period: 20s
     restart: unless-stopped
 
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile.dev
+    container_name: microservice-api-gateway-dev
+    env_file:
+      - .env.development
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+      # - DATABASE_URL=postgresql://microservices:microservices123@postgres:5432/auth_db
+      - CORS_ORIGIN=http://localhost:3000
+      - CORS_CREDENTIALS=true
+      - JWT_SECRET=dev-jwt-secret-not-for-production
+      - JWT_REFRESH_SECRET=dev-refresh-secret-not-for-production
+      - JWT_EXPIRES_IN=15m
+      - JWT_REFRESH_EXPIRES_IN=7d
+      - AUTH_SERVICE_URL=http://auth-services:3001
+      - NOTES_SERVICE_URL=http://notes-services:3003
+    ports:
+      - "8080:8080"
+      - "9231:9229"
+    volumes:
+      - ./api-gateway/src:/app/api-gateway/src
+      - ./api-gateway/tsconfig.json:/app/api-gateway/tsconfig.json
+      - ./api-gateway/nodemon.json:/app/api-gateway/nodemon.json
+      - ./shared/dist:/app/shared/dist
+      - api_gateway_node_modules:/app/api-gateway/node_modules
+      - shared_node_modules:/app/shared/node_modules
+    depends_on:
+      auth-services:
+        condition: service_healthy
+      notes-services:
+        condition: service_healthy
+    networks:
+      - microservice-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   notes_node_modules:
   auth_node_modules:
+  api_gateway_node_modules:
   shared_node_modules:
 
 networks:

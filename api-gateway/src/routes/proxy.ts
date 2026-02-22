@@ -1,6 +1,7 @@
-import { servicesConfig } from "@/config/service";
+// import { servicesConfig } from "@microservices-practice/shared";
 import { Router } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
+import { servicesConfig } from "../config/service";
 
 const router = Router();
 

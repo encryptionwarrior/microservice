@@ -4,7 +4,7 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 import { gatewayAuth } from "./middleware/auth";
 import proxyRoutes from "./routes/proxy";
-import { createErrorResponse } from "@shared/utils";
+import { createErrorResponse } from "@microservices-practice/shared";
 
 dotenv.config();
 
@@ -36,7 +36,9 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-app.use(gatewayAuth);
+// app.use(gatewayAuth);
+
+app.use(proxyRoutes);
 
 app.use(
   (

@@ -1,0 +1,33 @@
+# ---------- DEVELOPMENT ----------
+FROM node:20-alpine
+
+RUN apk add --no-cache dumb-init postgresql-client wget
+
+WORKDIR /app
+
+# ── 1. Build shared into /app/shared/dist ────────────────────────────────────
+# We copy src here so we can build it. The volume mount at runtime will
+# overlay shared/src with live files, but dist/ stays from this build.
+# When shared changes, devs run `yarn build:shared` locally and nodemon restarts.
+COPY shared/ ./shared/
+WORKDIR /app/shared
+RUN yarn install --production=false && yarn build
+
+# ── 2. Install service deps ───────────────────────────────────────────────────
+WORKDIR /app/api-gateway
+COPY api-gateway/package.json ./package.json
+COPY api-gateway/yarn.lock* ./
+
+# Replace workspace dep with a file: reference pointing to built shared
+RUN node -e " \
+  const fs = require('fs'); \
+  const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); \
+  pkg.dependencies['@microservices-practice/shared'] = 'file:/app/shared'; \
+  fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2)); \
+"
+RUN yarn install
+
+EXPOSE 8080
+
+WORKDIR /app/api-gateway
+CMD ["sh", "-c", "yarn dev"]
